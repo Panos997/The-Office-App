@@ -1,104 +1,186 @@
 <!DOCTYPE html>
-<html>
+<html lang="el">
 <head>
-    <title>Money Workday Tracker</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Money Bucket - The Office App</title>
     <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --success: #22c55e;
+            --accent: #fbbf24;
+        }
+
         body { 
-            font-family: 'Segoe UI', sans-serif; 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
             text-align: center; 
-            background: #0f172a; 
+            background: var(--bg-color); 
             color: white; 
             margin: 0; 
             height: 100vh; 
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            justify-content: center;
         }
-        #setup-ui { z-index: 100; transition: opacity 0.5s; }
-        #work-ui { display: none; z-index: 100; padding: 20px; }
-        
-        .card { background: #1e293b; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: inline-block; }
-        input, select { padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; margin: 10px; }
-        button { padding: 12px 25px; border-radius: 8px; border: none; background: #22c55e; color: white; cursor: pointer; font-weight: bold; }
-        
-        /* Progress Bar */
-        .progress-container { width: 80%; background: #334155; height: 30px; border-radius: 15px; margin: 20px auto; overflow: hidden; position: relative; border: 2px solid #475569; }
-        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #22c55e, #4ade80); transition: width 0.3s; }
-        #progress-text { position: absolute; width: 100%; top: 5px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
 
-        /* Bucket & Money */
-        #bucket { font-size: 100px; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 50; }
-        .money { position: absolute; font-size: 30px; z-index: 1; pointer-events: none; }
-        
-        /* Fast Forward Slider */
-        .slider-box { margin-top: 20px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; }
-        input[type=range] { width: 100%; cursor: pointer; }
+        /* Responsive Container */
+        .container {
+            padding: 20px;
+            z-index: 100;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+            display: inline-block;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h2 { font-size: 1.5rem; margin-bottom: 10px; }
+
+        input[type="number"], input[type="range"] { 
+            width: 80%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+            font-size: 16px; /* Prevent zoom on iOS */
+        }
+
+        button { 
+            width: 85%;
+            padding: 15px; 
+            border-radius: 8px; 
+            border: none; 
+            background: var(--success); 
+            color: white; 
+            font-weight: bold; 
+            font-size: 1rem;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        /* Progress Section */
+        #work-ui { display: none; width: 100%; }
+
+        .progress-container { 
+            width: 85%; 
+            background: #334155; 
+            height: 25px; 
+            border-radius: 12.5px; 
+            margin: 15px auto; 
+            overflow: hidden; 
+            position: relative; 
+        }
+
+        #progress-bar { 
+            width: 0%; 
+            height: 100%; 
+            background: linear-gradient(90deg, #22c55e, #4ade80); 
+            transition: width 0.4s ease; 
+        }
+
+        #live-money { font-size: 2.5rem; color: var(--accent); margin: 10px 0; }
+
+        /* Bucket & Falling Money */
+        #bucket { 
+            font-size: 80px; 
+            position: fixed; 
+            bottom: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 50; 
+            pointer-events: none;
+        }
+
+        .money { 
+            position: absolute; 
+            font-size: 30px; 
+            z-index: 1; 
+            pointer-events: none; 
+            will-change: transform;
+        }
+
+        .slider-label { font-size: 0.9rem; color: #94a3b8; }
+
+        @media (max-width: 480px) {
+            #bucket { font-size: 60px; }
+            h2 { font-size: 1.2rem; }
+            #live-money { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="setup-ui">
+    <div class="container" id="setup-ui">
         <div class="card">
-            <h2>💰 Money Rain Setup</h2>
-            <p>Πόσα παίρνεις καθαρά το μήνα;</p>
-            <input type="number" id="salary" placeholder="π.χ. 1200" value="1200">
-            <br>
-            <p>Σε ποια ώρα του 8ώρου είσαι τώρα;</p>
+            <h2>💰 Money Tracker</h2>
+            <p>Μηνιαίος Καθαρός Μισθός:</p>
+            <input type="number" id="salary" placeholder="π.χ. 1200" pattern="\d*">
+            
+            <p class="slider-label">Σε ποια ώρα του 8ώρου είσαι;</p>
             <input type="range" id="start-hour" min="0" max="8" step="0.5" value="0">
             <div id="hour-display">Ώρα: 0</div>
-            <br>
-            <button onclick="startApp()">Έναρξη Εργασίας 🚀</button>
+            
+            <button onclick="startApp()">ΕΝΑΡΞΗ</button>
         </div>
     </div>
 
-    <div id="work-ui">
-        <h1 id="live-money">0.00€</h1>
+    <div class="container" id="work-ui">
+        <div id="live-money">0.00€</div>
         <div class="progress-container">
             <div id="progress-bar"></div>
-            <div id="progress-text">0%</div>
         </div>
-        <p id="stats-info"></p>
+        <div id="stats-info" style="font-size: 0.9rem; color: #94a3b8;"></div>
         
-        <div class="slider-box">
-            <label>Fast Forward (Άλλαξε την ώρα σου):</label><br>
+        <div style="margin-top: 20px;">
+            <p class="slider-label">Fast Forward / Διόρθωση ώρας:</p>
             <input type="range" id="live-hour-slider" min="0" max="8" step="0.01">
-            <div id="live-hour-text">Τρέχουσα ώρα: 0.00 / 8</div>
         </div>
-        <button onclick="location.reload()" style="background:#ef4444; margin-top:10px;">Reset</button>
+        <button onclick="location.reload()" style="background:#ef4444; margin-top:20px; width: auto; padding: 10px 20px;">Reset</button>
     </div>
 
     <div id="bucket">🪣</div>
 
     <script>
         let salary, dailyTarget, hourlyRate;
-        let currentSeconds = 0; // Συνολικά δευτερόλεπτα από την αρχή του 8ώρου
+        let currentSeconds = 0;
         const TOTAL_SECONDS = 8 * 3600;
         let rainInterval;
 
-        // Update display για το αρχικό slider
         document.getElementById('start-hour').oninput = function() {
             document.getElementById('hour-display').innerText = `Ώρα: ${this.value}`;
         };
 
         function startApp() {
             salary = parseFloat(document.getElementById('salary').value);
-            if(!salary) return alert("Βάλε μισθό!");
+            if(!salary || salary <= 0) return alert("Παρακαλώ βάλε το μισθό σου!");
             
-            // Υπολογισμοί
             dailyTarget = salary / 22;
             hourlyRate = dailyTarget / 8;
-            
-            // Αρχικοποίηση χρόνου από το slider
             currentSeconds = parseFloat(document.getElementById('start-hour').value) * 3600;
             
-            // Switch UI
             document.getElementById('setup-ui').style.display = 'none';
             document.getElementById('work-ui').style.display = 'block';
-            document.getElementById('live-hour-slider').value = (currentSeconds / 3600);
             
-            // Start Logic
-            mainLoop();
+            updateUI();
+            
+            // Κύριο loop (κάθε δευτερόλεπτο)
+            setInterval(() => {
+                if(currentSeconds < TOTAL_SECONDS) {
+                    currentSeconds += 1;
+                    updateUI();
+                }
+            }, 1000);
+
             startRain();
         }
 
@@ -107,48 +189,38 @@
             const earnedSoFar = (currentSeconds / 3600) * hourlyRate;
             
             document.getElementById('progress-bar').style.width = Math.min(progressPercent, 100) + '%';
-            document.getElementById('progress-text').innerText = progressPercent.toFixed(1) + '%';
             document.getElementById('live-money').innerText = earnedSoFar.toFixed(2) + '€';
-            document.getElementById('live-hour-text').innerText = `Τρέχουσα ώρα: ${(currentSeconds/3600).toFixed(2)} / 8`;
-            document.getElementById('stats-info').innerText = `Στόχος ημέρας: ${dailyTarget.toFixed(2)}€ | Ωριαίο: ${hourlyRate.toFixed(2)}€`;
+            document.getElementById('live-hour-slider').value = (currentSeconds / 3600);
+            document.getElementById('stats-info').innerText = `Στόχος: ${dailyTarget.toFixed(2)}€ | Ώρα: ${(currentSeconds/3600).toFixed(2)}/8`;
         }
 
-        // Το ρολόι που τρέχει κάθε δευτερόλεπτο
-        function mainLoop() {
-            setInterval(() => {
-                if(currentSeconds < TOTAL_SECONDS) {
-                    currentSeconds += 1; // Προσθέτουμε 1 δευτερόλεπτο
-                    updateUI();
-                    document.getElementById('live-hour-slider').value = (currentSeconds / 3600);
-                }
-            }, 1000);
-        }
-
-        // Slider Fast Forward
         document.getElementById('live-hour-slider').oninput = function() {
             currentSeconds = parseFloat(this.value) * 3600;
             updateUI();
         };
 
-        function startRain() {
-            // Η βροχή εξαρτάται από το μισθό - όσο πιο πολλά, τόσο πιο συχνά
-            const freq = Math.max(200, 3000 - (salary/2));
-            rainInterval = setInterval(createMoney, freq);
-        }
-
         function createMoney() {
             if(currentSeconds >= TOTAL_SECONDS) return;
+            
             const el = document.createElement('div');
             el.className = 'money';
             el.innerText = ['💶', '💰', '💸', '🪙'][Math.floor(Math.random() * 4)];
-            el.style.left = Math.random() * 90 + 5 + 'vw';
+            el.style.left = Math.random() * 85 + 5 + 'vw';
             el.style.top = '-50px';
             document.body.appendChild(el);
 
-            el.animate([
-                { top: '-50px' },
-                { top: (window.innerHeight - 100) + 'px' }
-            ], { duration: 2000, easing: 'linear' }).onfinish = () => el.remove();
+            const anim = el.animate([
+                { transform: 'translateY(0)' },
+                { transform: `translateY(${window.innerHeight - 80}px)` }
+            ], { duration: 2500, easing: 'linear' });
+
+            anim.onfinish = () => el.remove();
+        }
+
+        function startRain() {
+            // Προσαρμογή ταχύτητας για να μην κολλάει το κινητό
+            const freq = Math.max(300, 2500 - (salary/3));
+            rainInterval = setInterval(createMoney, freq);
         }
     </script>
 </body>
